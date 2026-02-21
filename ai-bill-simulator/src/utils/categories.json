@@ -1,0 +1,17 @@
+{
+  "Data Privacy Regulation": { "Agree": 0.804, "Neutral": 0.095, "Disagree": 0.101 },
+  "Employment Retraining": { "Agree": 0.762, "Neutral": 0.140, "Disagree": 0.098 },
+  "AI Deployment Regulation": { "Agree": 0.725, "Neutral": 0.145, "Disagree": 0.130 },
+  "Antitrust": { "Agree": 0.577, "Neutral": 0.245, "Disagree": 0.178 },
+  "Criminal Justice AI": { "Agree": 0.547, "Neutral": 0.202, "Disagree": 0.251 },
+  "Bias Audits (Hiring/Promotion)": { "Agree": 0.517, "Neutral": 0.183, "Disagree": 0.300 },
+  "Social Safety Net": { "Agree": 0.464, "Neutral": 0.246, "Disagree": 0.290 },
+  "Federal Oversight (Gov AI)": { "Agree": 0.456, "Neutral": 0.228, "Disagree": 0.317 },
+  "Hardware Subsidies (Chips/AI)": { "Agree": 0.444, "Neutral": 0.274, "Disagree": 0.282 },
+  "Higher Corporate Income Taxes": { "Agree": 0.429, "Neutral": 0.305, "Disagree": 0.266 },
+  "Robot Tax": { "Agree": 0.424, "Neutral": 0.223, "Disagree": 0.353 },
+  "Immigration Reform (AI Talent)": { "Agree": 0.391, "Neutral": 0.341, "Disagree": 0.268 },
+  "Facial Recognition Ban (Law Enforcement)": { "Agree": 0.342, "Neutral": 0.260, "Disagree": 0.398 },
+  "Wage Subsidies (Wage Declines)": { "Agree": 0.339, "Neutral": 0.270, "Disagree": 0.390 },
+  "Universal Basic Income (UBI)": { "Agree": 0.246, "Neutral": 0.171, "Disagree": 0.583 }
+}
