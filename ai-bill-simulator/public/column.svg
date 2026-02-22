@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 800" preserveAspectRatio="xMidYMin slice">
+    <!-- Main shaft -->
+    <rect x="40" y="160" width="120" height="640" fill="#d4d0cd" />
+    
+    <!-- Fluting (vertical grooves on the shaft) -->
+    <rect x="45" y="160" width="12" height="640" fill="#c3beba" rx="6" />
+    <rect x="65" y="160" width="15" height="640" fill="#f4f3f2" rx="7.5" />
+    <rect x="90" y="160" width="20" height="640" fill="#e1dfdd" rx="10" />
+    <rect x="120" y="160" width="15" height="640" fill="#f4f3f2" rx="7.5" />
+    <rect x="143" y="160" width="12" height="640" fill="#c3beba" rx="6" />
+
+    <!-- Capital Top Block -->
+    <rect x="0" y="0" width="200" height="40" fill="#c9c4c0" />
+    <!-- Gradient like shine on the top block -->
+    <polygon points="0,0 40,40 160,40 200,0" fill="#e8e6e5" opacity="0.6"/>
+    
+    <!-- Flared section below top block -->
+    <polygon points="0,40 20,90 180,90 200,40" fill="#dfdcda" />
+    <polygon points="20,40 40,90 160,90 180,40" fill="#f4f3f2" opacity="0.5"/>
+    
+    <!-- Capital Scroll / Main wide belt -->
+    <rect x="20" y="90" width="160" height="30" fill="#ecebea" />
+    <rect x="20" y="115" width="160" height="5" fill="#b9b3af" />
+    
+    <!-- Volutes (the curly bits on Ionic capitals) -->
+    <!-- Left Volute -->
+    <circle cx="30" cy="135" r="30" fill="#d4d0cd" />
+    <circle cx="30" cy="135" r="22" fill="#ecebea" />
+    <circle cx="30" cy="135" r="14" fill="#c3beba" />
+    <circle cx="30" cy="135" r="6" fill="#ecebea" />
+    
+    <!-- Right Volute -->
+    <circle cx="170" cy="135" r="30" fill="#d4d0cd" />
+    <circle cx="170" cy="135" r="22" fill="#ecebea" />
+    <circle cx="170" cy="135" r="14" fill="#c3beba" />
+    <circle cx="170" cy="135" r="6" fill="#ecebea" />
+    
+    <!-- Egg and dart / middle decoration below capitals -->
+    <rect x="50" y="120" width="100" height="30" fill="#e8e6e5" />
+    <!-- Eggs -->
+    <ellipse cx="65" cy="135" rx="10" ry="14" fill="#fdfcfc" />
+    <ellipse cx="65" cy="135" rx="7" ry="10" fill="#d4d0cd" />
+    
+    <ellipse cx="90" cy="135" rx="10" ry="14" fill="#fdfcfc" />
+    <ellipse cx="90" cy="135" rx="7" ry="10" fill="#d4d0cd" />
+    
+    <ellipse cx="115" cy="135" rx="10" ry="14" fill="#fdfcfc" />
+    <ellipse cx="115" cy="135" rx="7" ry="10" fill="#d4d0cd" />
+    
+    <ellipse cx="140" cy="135" rx="10" ry="14" fill="#fdfcfc" />
+    <ellipse cx="140" cy="135" rx="7" ry="10" fill="#d4d0cd" />
+    
+    <!-- Base transition before shaft -->
+    <rect x="40" y="150" width="120" height="10" fill="#a39d99" />
+</svg>

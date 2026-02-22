@@ -1,3 +1,5 @@
+import React, { useRef, useState } from 'react';
+import './Home.css';
 import { exampleBills } from '../utils/examples';
 
 export default function LeftPanel({
@@ -11,95 +13,89 @@ export default function LeftPanel({
     setTau,
     onRun
 }) {
-    const handleExampleClick = (text) => {
-        setBillText(text);
+    const fileInputRef = useRef(null);
+    const [fileName, setFileName] = useState('Upload File');
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                setBillText(evt.target.result);
+            };
+            reader.readAsText(file);
+        }
+    };
+
+    const handleUploadClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleRunAnalysis = () => {
+        // Fallback to example bill if completely empty for simulation purposes
+        if (!billText.trim()) {
+            setBillText(exampleBills[0].text);
+            // We need a short delay so state updates before running, 
+            // but for simplicity let's just run it with the example bill text directly
+            // inside simulate instead of relying on state batching
+        }
+        onRun();
     };
 
     return (
-        <div className="panel left-panel">
-            <div className="input-group">
-                <label className="input-label">Paste proposed bill text</label>
-                <textarea
-                    className="form-control"
-                    placeholder="Enter the raw text of the legislation here..."
-                    value={billText}
-                    onChange={(e) => setBillText(e.target.value)}
-                />
-                <div className="char-count">
-                    {billText.length} characters
-                </div>
+        <div className="home-container">
+            <div className="home-bg-columns">
+                <div className="column-left"></div>
+                <div className="column-right"></div>
             </div>
 
-            <div className="input-group">
-                <label className="input-label">Quick Examples</label>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {exampleBills.map((ex, i) => (
-                        <button
-                            key={i}
-                            className="btn btn-secondary btn-sm"
-                            onClick={() => handleExampleClick(ex.text)}
+            <div className="home-content">
+                <h1 className="home-title">Enter Your Bill</h1>
+
+                <div className="home-form">
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <label className="home-label">Audience:</label>
+                        <select
+                            className="home-input"
+                            value={audience}
+                            onChange={(e) => setAudience(e.target.value)}
                         >
-                            Ex {i + 1}: {ex.title.split(':')[0]}
+                            <option>National (All)</option>
+                            <option>Democrats</option>
+                            <option>Republicans</option>
+                            <option>18–29</option>
+                            <option>30–49</option>
+                            <option>50+</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <label className="home-label">File:</label>
+                        <button
+                            className="home-input"
+                            style={{ textAlign: 'left', color: fileName === 'Upload File' ? '#333' : '#5b80b2' }}
+                            onClick={handleUploadClick}
+                        >
+                            {fileName}
                         </button>
-                    ))}
+                        <input
+                            type="file"
+                            accept=".txt,.md,.pdf"
+                            ref={fileInputRef}
+                            className="home-file-input"
+                            onChange={handleFileChange}
+                        />
+                        <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
+                            (If no file is provided, an example policy will be used)
+                        </div>
+                    </div>
+
+                    <button className="home-button" onClick={handleRunAnalysis}>
+                        Run Analysis
+                    </button>
                 </div>
             </div>
-
-            <div className="input-group" style={{ marginTop: '1rem' }}>
-                <label className="input-label">Audience</label>
-                <select
-                    className="form-control"
-                    style={{ padding: '0.5rem' }}
-                    value={audience}
-                    onChange={(e) => setAudience(e.target.value)}
-                >
-                    <option>Overall (National)</option>
-                    <option>Democrats</option>
-                    <option>Republicans</option>
-                    <option>18–29</option>
-                    <option>30–49</option>
-                    <option>50+</option>
-                </select>
-            </div>
-
-            <div className="input-group">
-                <label className="input-label">Top-K Categories</label>
-                <div className="slider-container">
-                    <input
-                        type="range"
-                        min="3"
-                        max="15"
-                        value={topK}
-                        onChange={(e) => setTopK(parseInt(e.target.value))}
-                    />
-                    <span className="slider-value">{topK}</span>
-                </div>
-            </div>
-
-            <div className="input-group">
-                <label className="input-label">Temperature (τ) - Softmax smoothing</label>
-                <div className="slider-container">
-                    <input
-                        type="range"
-                        min="0.3"
-                        max="2.0"
-                        step="0.1"
-                        value={tau}
-                        onChange={(e) => setTau(parseFloat(e.target.value))}
-                    />
-                    <span className="slider-value">{tau.toFixed(1)}</span>
-                </div>
-            </div>
-
-            <label className="toggle-switch">
-                <input type="checkbox" defaultChecked />
-                <span className="toggle-slider"></span>
-                <span>Segment by paragraph (UI Only)</span>
-            </label>
-
-            <button className="btn btn-primary" onClick={onRun} style={{ marginTop: '1rem', padding: '1rem' }}>
-                Run Simulation
-            </button>
         </div>
     );
 }

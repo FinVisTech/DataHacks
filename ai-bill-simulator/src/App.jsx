@@ -26,26 +26,21 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <div className="header-title-wrapper">
-          <h1>AI Bill Sentiment Simulator</h1>
-          <span className="header-subtitle">Estimate public support for proposed AI legislation by decomposing it into policy components.</span>
-        </div>
-
-        <nav className="top-nav">
-          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-            Editor
-          </NavLink>
-          <NavLink to="/results" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-            Dashboard
-          </NavLink>
-        </nav>
-
-        <div className="header-actions">
-          <button className="btn btn-secondary" onClick={() => window.print()}>
-            Export as PDF
-          </button>
-        </div>
+      <header className="home-header">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+          alt="US Flag"
+          style={{ height: '30px', marginLeft: '1rem', border: '1px solid rgba(255,255,255,0.2)' }}
+        />
+        {/* Hidden nav for development purposes, but keep it mostly invisible or remove it. 
+            The user can navigate via Run Simulation button */}
+        {results && (
+          <nav className="top-nav" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', marginRight: '1rem' }}>
+            <NavLink to="/results" className="nav-link" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Results Dashboard
+            </NavLink>
+          </nav>
+        )}
       </header>
 
       <main className="main-content">

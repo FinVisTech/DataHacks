@@ -678,3 +678,5 @@ mark {
   background-color: var(--accent-primary);
   box-shadow: var(--shadow-sm);
 }
+.home-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: #0b2f56; color: white; border-bottom: none; z-index: 10; height: 50px; }
+
