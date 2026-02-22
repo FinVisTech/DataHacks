@@ -34,6 +34,31 @@ function AppContent() {
           className="flag-icon"
           onClick={() => navigate('/globe')}
         />
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            marginLeft: '15px',
+            background: 'transparent',
+            border: '1px solid rgba(255,255,255,0.4)',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '0.9rem',
+            fontFamily: 'inherit',
+            transition: 'all 0.2s'
+          }}
+          onMouseOver={(e) => {
+            e.target.style.background = 'rgba(255,255,255,0.1)';
+            e.target.style.borderColor = 'rgba(255,255,255,0.8)';
+          }}
+          onMouseOut={(e) => {
+            e.target.style.background = 'transparent';
+            e.target.style.borderColor = 'rgba(255,255,255,0.4)';
+          }}
+        >
+          Home
+        </button>
 
         <h1 className="header-main-title">AI Policy Sentiment Analysis</h1>
 
