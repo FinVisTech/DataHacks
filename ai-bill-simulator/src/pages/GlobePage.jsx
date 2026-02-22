@@ -2,64 +2,80 @@ import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 
-// Real State AI Legislation Data (2024 approximations)
+// Real State AI Legislation Data (2023 - 2026)
 const LEGISLATION_DATA = {
-    "Alabama": { proposed: 3, passed: 0 },
-    "Alaska": { proposed: 2, passed: 0 },
-    "Arizona": { proposed: 4, passed: 1 },
-    "Arkansas": { proposed: 1, passed: 0 },
-    "California": { proposed: 65, passed: 18 },
-    "Colorado": { proposed: 15, passed: 3 },
-    "Connecticut": { proposed: 12, passed: 2 },
-    "Delaware": { proposed: 2, passed: 0 },
-    "Florida": { proposed: 14, passed: 2 },
-    "Georgia": { proposed: 6, passed: 0 },
-    "Hawaii": { proposed: 8, passed: 1 },
-    "Idaho": { proposed: 2, passed: 0 },
-    "Illinois": { proposed: 22, passed: 4 },
-    "Indiana": { proposed: 5, passed: 1 },
-    "Iowa": { proposed: 3, passed: 0 },
-    "Kansas": { proposed: 2, passed: 0 },
-    "Kentucky": { proposed: 4, passed: 0 },
-    "Louisiana": { proposed: 7, passed: 1 },
-    "Maine": { proposed: 5, passed: 1 },
-    "Maryland": { proposed: 18, passed: 3 },
-    "Massachusetts": { proposed: 25, passed: 4 },
-    "Michigan": { proposed: 11, passed: 1 },
-    "Minnesota": { proposed: 10, passed: 2 },
-    "Mississippi": { proposed: 2, passed: 0 },
-    "Missouri": { proposed: 6, passed: 0 },
-    "Montana": { proposed: 1, passed: 0 },
-    "Nebraska": { proposed: 2, passed: 0 },
-    "Nevada": { proposed: 3, passed: 1 },
-    "New Hampshire": { proposed: 8, passed: 1 },
-    "New Jersey": { proposed: 20, passed: 3 },
-    "New Mexico": { proposed: 4, passed: 0 },
-    "New York": { proposed: 45, passed: 5 },
-    "North Carolina": { proposed: 6, passed: 0 },
-    "North Dakota": { proposed: 1, passed: 0 },
-    "Ohio": { proposed: 9, passed: 0 },
-    "Oklahoma": { proposed: 8, passed: 1 },
-    "Oregon": { proposed: 10, passed: 2 },
-    "Pennsylvania": { proposed: 16, passed: 2 },
-    "Rhode Island": { proposed: 7, passed: 1 },
-    "South Carolina": { proposed: 4, passed: 0 },
-    "South Dakota": { proposed: 1, passed: 0 },
-    "Tennessee": { proposed: 8, passed: 2 },
-    "Texas": { proposed: 12, passed: 2 },
-    "Utah": { proposed: 11, passed: 3 },
-    "Vermont": { proposed: 6, passed: 1 },
-    "Virginia": { proposed: 15, passed: 3 },
-    "Washington": { proposed: 18, passed: 4 },
-    "West Virginia": { proposed: 3, passed: 0 },
-    "Wisconsin": { proposed: 7, passed: 1 },
-    "Wyoming": { proposed: 1, passed: 0 },
-    "District of Columbia": { proposed: 4, passed: 0 },
-    "Puerto Rico": { proposed: 1, passed: 0 }
+    "Alabama": { proposed: 11, passed: 3 },
+    "Alaska": { proposed: 12, passed: 1 },
+    "Arizona": { proposed: 13, passed: 4 },
+    "Arkansas": { proposed: 15, passed: 5 },
+    "California": { proposed: 109, passed: 8 },
+    "Colorado": { proposed: 16, passed: 6 },
+    "Connecticut": { proposed: 29, passed: 3 },
+    "Delaware": { proposed: 6, passed: 3 },
+    "Florida": { proposed: 40, passed: 9 },
+    "Georgia": { proposed: 40, passed: 15 },
+    "Hawaii": { proposed: 61, passed: 6 },
+    "Idaho": { proposed: 9, passed: 1 },
+    "Illinois": { proposed: 88, passed: 7 },
+    "Indiana": { proposed: 13, passed: 7 },
+    "Iowa": { proposed: 21, passed: 2 },
+    "Kansas": { proposed: 7, passed: 3 },
+    "Kentucky": { proposed: 16, passed: 2 },
+    "Louisiana": { proposed: 16, passed: 9 },
+    "Maine": { proposed: 26, passed: 2 },
+    "Maryland": { proposed: 72, passed: 18 },
+    "Massachusetts": { proposed: 81, passed: 2 },
+    "Michigan": { proposed: 17, passed: 3 },
+    "Minnesota": { proposed: 38, passed: 2 },
+    "Mississippi": { proposed: 20, passed: 3 },
+    "Missouri": { proposed: 19, passed: 2 },
+    "Montana": { proposed: 34, passed: 11 },
+    "Nebraska": { proposed: 13, passed: 4 },
+    "Nevada": { proposed: 24, passed: 4 },
+    "New Hampshire": { proposed: 8, passed: 2 },
+    "New Jersey": { proposed: 112, passed: 7 },
+    "New Mexico": { proposed: 20, passed: 5 },
+    "New York": { proposed: 235, passed: 6 },
+    "North Carolina": { proposed: 42, passed: 4 },
+    "North Dakota": { proposed: 15, passed: 12 },
+    "Ohio": { proposed: 10, passed: 1 },
+    "Oklahoma": { proposed: 29, passed: 2 },
+    "Oregon": { proposed: 20, passed: 6 },
+    "Pennsylvania": { proposed: 47, passed: 1 },
+    "Rhode Island": { proposed: 38, passed: 7 },
+    "South Carolina": { proposed: 17, passed: 7 },
+    "South Dakota": { proposed: 3, passed: 2 },
+    "Tennessee": { proposed: 40, passed: 5 },
+    "Texas": { proposed: 89, passed: 25 },
+    "Utah": { proposed: 22, passed: 17 },
+    "Vermont": { proposed: 13, passed: 0 },
+    "Virginia": { proposed: 54, passed: 11 },
+    "Washington": { proposed: 36, passed: 3 },
+    "West Virginia": { proposed: 20, passed: 6 },
+    "Wisconsin": { proposed: 16, passed: 1 },
+    "Wyoming": { proposed: 7, passed: 1 }
 };
 
 const getBaseStateData = (stateName) => {
     return LEGISLATION_DATA[stateName] || { proposed: 0, passed: 0 };
+};
+
+// Interpolate color from Red to Blue based on ratio (0 to 1)
+const interpolateHeatmapColor = (ratio) => {
+    // Red: rgb(255, 0, 0)
+    // Blue: rgb(0, 0, 255)
+    // We can output a hex string. 
+    // Low activity (ratio near 0) -> more Red
+    // High activity (ratio near 1) -> more Blue
+
+    // Clamp securely between 0 and 1
+    const safeRatio = Math.max(0, Math.min(1, ratio));
+
+    const r = Math.round(255 * (1 - safeRatio));
+    const g = 0; // Pure red -> pure blue gives purple in between. Or we could use a different gradient if requested, but pure red/blue requested.
+    const b = Math.round(255 * safeRatio);
+
+    return `rgb(${r}, ${g}, ${b})`;
 };
 
 // Reusable Layer for US States GeoJSON
@@ -80,15 +96,15 @@ const USStatesLayer = ({ onHoverState }) => {
             const stateName = feature.getProperty('name');
             const data = getBaseStateData(stateName);
 
-            // Color based on proposed bill volume (as an activity metric)
-            let fillColor = '#1a1a2e'; // dark blue/gray for 0
-            if (data.proposed > 30) fillColor = '#007FFF';
-            else if (data.proposed > 10) fillColor = '#0055aa';
-            else if (data.proposed > 0) fillColor = '#003366';
+            // Calculate ratio based on enacted bills (Texas has the max at 25 in this dataset)
+            const MAX_ENACTED = 25;
+            const ratio = data.passed / MAX_ENACTED;
+
+            let fillColor = interpolateHeatmapColor(ratio);
 
             return {
                 fillColor: fillColor,
-                fillOpacity: data.proposed > 0 ? 0.6 : 0.2,
+                fillOpacity: data.proposed > 0 ? 0.7 : 0.3,
                 strokeWeight: 1,
                 strokeColor: '#555',
             };
@@ -181,15 +197,15 @@ export default function GlobePage() {
                                 <span style={{ fontWeight: 'bold' }}>{getBaseStateData(hoveredState).proposed}</span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ color: '#aaa' }}>Number of AI Bills Passed:</span>
+                                <span style={{ color: '#aaa' }}>Number of AI Bills Enacted:</span>
                                 <span style={{ fontWeight: 'bold', color: getBaseStateData(hoveredState).passed > 0 ? '#32CD32' : 'inherit' }}>
                                     {getBaseStateData(hoveredState).passed}
                                 </span>
                             </div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #333' }}>
-                                <span style={{ color: '#aaa' }}>Activity Level:</span>
-                                <span style={{ fontWeight: 'bold', color: getBaseStateData(hoveredState).proposed > 20 ? '#32CD32' : (getBaseStateData(hoveredState).proposed > 0 ? '#007FFF' : '#FFD700') }}>
-                                    {getBaseStateData(hoveredState).proposed > 20 ? 'Highly Active' : (getBaseStateData(hoveredState).proposed > 0 ? 'Active' : 'Inactive')}
+                                <span style={{ color: '#aaa' }}>Enacted Level:</span>
+                                <span style={{ fontWeight: 'bold', color: interpolateHeatmapColor(getBaseStateData(hoveredState).passed / 25) }}>
+                                    {getBaseStateData(hoveredState).passed > 15 ? 'Very High' : (getBaseStateData(hoveredState).passed > 5 ? 'Moderate' : (getBaseStateData(hoveredState).passed > 0 ? 'Low' : 'None'))}
                                 </span>
                             </div>
                         </div>
