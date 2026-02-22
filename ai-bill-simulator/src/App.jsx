@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, NavLink } from 'react-router-dom';
 import InputPage from './pages/InputPage';
 import ResultsPage from './pages/ResultsPage';
+import GlobePage from './pages/GlobePage';
 import { simulate } from './utils/simulator';
 
 function AppContent() {
@@ -39,6 +40,9 @@ function AppContent() {
           <NavLink to="/results" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
             Dashboard
           </NavLink>
+          <NavLink to="/globe" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+            Globe
+          </NavLink>
         </nav>
 
         <div className="header-actions">
@@ -72,6 +76,7 @@ function AppContent() {
               tau={tau}
             />
           } />
+          <Route path="/globe" element={<GlobePage />} />
         </Routes>
       </main>
     </div>
