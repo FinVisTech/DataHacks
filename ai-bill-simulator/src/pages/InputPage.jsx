@@ -3,7 +3,6 @@ import LeftPanel from '../components/LeftPanel';
 
 export default function InputPage({
     billText, setBillText,
-    audience, setAudience,
     topK, setTopK,
     tau, setTau,
     onRun
@@ -13,8 +12,6 @@ export default function InputPage({
             <LeftPanel
                 billText={billText}
                 setBillText={setBillText}
-                audience={audience}
-                setAudience={setAudience}
                 topK={topK}
                 setTopK={setTopK}
                 tau={tau}
@@ -28,8 +25,6 @@ export default function InputPage({
 InputPage.propTypes = {
     billText: PropTypes.string.isRequired,
     setBillText: PropTypes.func.isRequired,
-    audience: PropTypes.string.isRequired,
-    setAudience: PropTypes.func.isRequired,
     topK: PropTypes.number.isRequired,
     setTopK: PropTypes.func.isRequired,
     tau: PropTypes.number.isRequired,

@@ -7,10 +7,10 @@ import { simulate } from './utils/simulator';
 
 function AppContent() {
   const [billText, setBillText] = useState('');
-  const [audience, setAudience] = useState('Overall (National)');
   const [topK, setTopK] = useState(5);
   const [tau, setTau] = useState(1.0);
 
+  const [audience, setAudience] = useState('general');
   const [results, setResults] = useState(null);
   const navigate = useNavigate();
 
@@ -19,7 +19,7 @@ function AppContent() {
       alert("Please paste a bill text or choose an example.");
       return;
     }
-    const res = simulate(billText, audience, topK, tau);
+    const res = simulate(billText, topK, tau);
     setResults(res);
     // Navigate to results page after simulation
     navigate('/results');
@@ -58,8 +58,6 @@ function AppContent() {
             <InputPage
               billText={billText}
               setBillText={setBillText}
-              audience={audience}
-              setAudience={setAudience}
               topK={topK}
               setTopK={setTopK}
               tau={tau}

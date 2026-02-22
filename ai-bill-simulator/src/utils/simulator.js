@@ -18,41 +18,12 @@ const KEYWORDS = {
   "Universal Basic Income (UBI)": ["ubi", "universal basic income"]
 };
 
-// Simple audience adjustments for demo purposes
-const applyAudienceModifiers = (category, dist, audience) => {
-  let { Agree, Neutral, Disagree } = dist;
-  
-  if (audience === "Republicans") {
-    if (category.includes("Tax") || category.includes("UBI")) Agree -= 0.05;
-    if (category === "AI Deployment Regulation") Agree += 0.05;
-  } else if (audience === "Democrats") {
-    if (category.includes("Privacy") || category.includes("Bias") || category.includes("Safety Net")) Agree += 0.05;
-  } else if (audience === "18-29" || audience === "18–29") {
-    if (category.includes("UBI") || category.includes("Retraining")) Agree += 0.05;
-  } else if (audience === "50+") {
-    if (category.includes("Federal Oversight")) Agree += 0.05;
-    if (category.includes("UBI")) Agree -= 0.05;
-  }
-  
-  // clamp and renormalize
-  Agree = Math.max(0, Agree);
-  Neutral = Math.max(0, Neutral);
-  Disagree = Math.max(0, Disagree);
-  
-  const sum = Agree + Neutral + Disagree;
-  return {
-    Agree: Agree / sum,
-    Neutral: Neutral / sum,
-    Disagree: Disagree / sum
-  };
-};
-
-export function simulate(billText, audience = "Overall (National)", topK = 5, tau = 1.0) {
+export function simulate(billText, topK = 5, tau = 1.0) {
   const textLower = billText.toLowerCase();
-  
+
   let rawScores = {};
   let totalMatches = 0;
-  
+
   const matchedPhrases = {};
 
   Object.entries(KEYWORDS).forEach(([cat, words]) => {
@@ -66,7 +37,7 @@ export function simulate(billText, audience = "Overall (National)", topK = 5, ta
         rawScores[cat] += matches.length;
         totalMatches += matches.length;
         if (!matchedPhrases[cat].includes(w)) {
-           matchedPhrases[cat].push(w);
+          matchedPhrases[cat].push(w);
         }
       }
     });
@@ -101,7 +72,7 @@ export function simulate(billText, audience = "Overall (National)", topK = 5, ta
 
   let weights = {};
   Object.keys(categoriesData).forEach(cat => weights[cat] = 0);
-  
+
   expScores.forEach(({ cat, val }) => {
     weights[cat] = val / expSum;
   });
@@ -116,11 +87,10 @@ export function simulate(billText, audience = "Overall (National)", topK = 5, ta
   Object.entries(weights).forEach(([cat, w]) => {
     if (w > 0) {
       const baseDist = categoriesData[cat];
-      const adjDist = applyAudienceModifiers(cat, baseDist, audience);
-      
-      const cAgree = w * adjDist.Agree;
-      const cNeutral = w * adjDist.Neutral;
-      const cDisagree = w * adjDist.Disagree;
+
+      const cAgree = w * baseDist.Agree;
+      const cNeutral = w * baseDist.Neutral;
+      const cDisagree = w * baseDist.Disagree;
 
       predAgree += cAgree;
       predNeutral += cNeutral;
