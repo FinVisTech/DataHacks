@@ -147,26 +147,6 @@ export default function GlobePage() {
 
     return (
         <div className="globe-page-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
-            {/* Header Overlay UI */}
-            <div className="globe-header" style={{
-                position: 'absolute',
-                top: '20px',
-                left: '20px',
-                backgroundColor: 'rgba(20, 20, 25, 0.9)',
-                padding: '15px 20px',
-                borderRadius: '8px',
-                border: '1px solid #444',
-                zIndex: 10,
-                color: '#fff',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                maxWidth: '350px'
-            }}>
-                <h2 style={{ fontSize: '1.25rem', margin: '0 0 8px 0' }}>Global Policy Insights</h2>
-                <p style={{ color: '#aaa', fontSize: '0.85rem', margin: 0 }}>
-                    This map visualizes AI policy data over specific geographical regions. Toggle regions on or off using the checklist.
-                </p>
-            </div>
-
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
                 {/* State Info Overlay UI */}
