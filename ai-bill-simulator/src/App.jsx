@@ -27,29 +27,26 @@ function AppContent() {
 
   return (
     <div className="app-container">
-      <header className="header">
-        <div className="header-title-wrapper">
-          <h1>AI Bill Sentiment Simulator</h1>
-          <span className="header-subtitle">Estimate public support for proposed AI legislation by decomposing it into policy components.</span>
-        </div>
+      <header className="home-header">
+        <img
+          src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
+          alt="US Flag"
+          style={{ height: '30px', marginLeft: '1rem', border: '1px solid rgba(255,255,255,0.2)' }}
+        />
 
-        <nav className="top-nav">
-          <NavLink to="/" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+        <nav className="top-nav" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', marginRight: '1rem', display: 'flex', gap: '1rem' }}>
+          <NavLink to="/" className="nav-link" style={{ color: 'rgba(255,255,255,0.7)' }}>
             Editor
           </NavLink>
-          <NavLink to="/results" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
-            Dashboard
-          </NavLink>
-          <NavLink to="/globe" className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}>
+          {results && (
+            <NavLink to="/results" className="nav-link" style={{ color: 'rgba(255,255,255,0.7)' }}>
+              Results Dashboard
+            </NavLink>
+          )}
+          <NavLink to="/globe" className="nav-link" style={{ color: 'rgba(255,255,255,0.7)' }}>
             Globe
           </NavLink>
         </nav>
-
-        <div className="header-actions">
-          <button className="btn btn-secondary" onClick={() => window.print()}>
-            Export as PDF
-          </button>
-        </div>
       </header>
 
       <main className="main-content">

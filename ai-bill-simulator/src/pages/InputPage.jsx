@@ -9,20 +9,18 @@ export default function InputPage({
     onRun
 }) {
     return (
-        <div className="page-container page-input animate-fade">
-            <div className="input-page-centered">
-                <LeftPanel
-                    billText={billText}
-                    setBillText={setBillText}
-                    audience={audience}
-                    setAudience={setAudience}
-                    topK={topK}
-                    setTopK={setTopK}
-                    tau={tau}
-                    setTau={setTau}
-                    onRun={onRun}
-                />
-            </div>
+        <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+            <LeftPanel
+                billText={billText}
+                setBillText={setBillText}
+                audience={audience}
+                setAudience={setAudience}
+                topK={topK}
+                setTopK={setTopK}
+                tau={tau}
+                setTau={setTau}
+                onRun={onRun}
+            />
         </div>
     );
 }
