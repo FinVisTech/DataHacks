@@ -74,9 +74,6 @@ export default function LeftPanel({
                             className="home-file-input"
                             onChange={handleFileChange}
                         />
-                        <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
-                            (If no file is provided, an example policy will be used)
-                        </div>
                     </div>
 
                     <button className="home-button" onClick={handleRunAnalysis}>
