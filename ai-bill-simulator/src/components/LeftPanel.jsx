@@ -1,12 +1,11 @@
 import React, { useRef, useState } from 'react';
 import './Home.css';
 import { exampleBills } from '../utils/examples';
+import uploadIcon from '../assets/upload.svg';
 
 export default function LeftPanel({
     billText,
     setBillText,
-    audience,
-    setAudience,
     topK,
     setTopK,
     tau,
@@ -55,29 +54,18 @@ export default function LeftPanel({
 
                 <div className="home-form">
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <label className="home-label">Audience:</label>
-                        <select
-                            className="home-input"
-                            value={audience}
-                            onChange={(e) => setAudience(e.target.value)}
-                        >
-                            <option>National (All)</option>
-                            <option>Democrats</option>
-                            <option>Republicans</option>
-                            <option>18–29</option>
-                            <option>30–49</option>
-                            <option>50+</option>
-                        </select>
-                    </div>
-
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <label className="home-label">File:</label>
                         <button
                             className="home-input"
-                            style={{ textAlign: 'left', color: fileName === 'Upload File' ? '#333' : '#5b80b2' }}
+                            style={{ color: fileName === 'Upload File' ? '#333' : '#5b80b2' }}
                             onClick={handleUploadClick}
                         >
-                            {fileName}
+                            <img
+                                src={uploadIcon}
+                                alt="Upload Icon"
+                                style={{ width: '48px', height: '48px', opacity: fileName === 'Upload File' ? 0.7 : 1 }}
+                            />
+                            <span>{fileName}</span>
                         </button>
                         <input
                             type="file"
@@ -86,9 +74,6 @@ export default function LeftPanel({
                             className="home-file-input"
                             onChange={handleFileChange}
                         />
-                        <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.25rem' }}>
-                            (If no file is provided, an example policy will be used)
-                        </div>
                     </div>
 
                     <button className="home-button" onClick={handleRunAnalysis}>
