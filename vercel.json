@@ -1,25 +1,12 @@
 {
-    "builds": [
+    "rewrites": [
         {
-            "src": "src/api.py",
-            "use": "@vercel/python"
+            "source": "/api/(.*)",
+            "destination": "/api/index.py"
         },
         {
-            "src": "ai-bill-simulator/package.json",
-            "use": "@vercel/static-build",
-            "config": {
-                "distDir": "dist"
-            }
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/(.*)",
-            "dest": "src/api.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "ai-bill-simulator/dist/$1"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
