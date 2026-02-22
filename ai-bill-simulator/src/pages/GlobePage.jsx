@@ -68,10 +68,7 @@ const interpolateHeatmapColor = (ratio) => {
     return `rgb(${r}, ${g}, ${b})`;
 };
 
-const MOCK_ML_DATA = {
-    country: "France",
-    momentumForecast: "The proposed AI policies are expected to significantly accelerate France's tech sector momentum over the next 3-5 years. With streamlined regulations around AI R&D and clear guidelines on ethical deployments, startups and enterprise hubs such as Station F will see an influx of venture capital. The focus on establishing local sovereign models reduces overseas dependency, catalyzing domestic hardware expansion and compute clusters. We anticipate a 35% growth in AI-centric jobs and higher adoption rates among legacy industries like aviation and healthcare. The momentum is firmly positive, positioning France as a leading AI hub within the European Union."
-};
+// Removed MOCK_ML_DATA; now using dynamic backend results.
 
 const USStatesLayer = ({ onHoverState }) => {
     const map = useMap();
@@ -128,10 +125,26 @@ USStatesLayer.propTypes = {
     onHoverState: PropTypes.func.isRequired,
 };
 
+const COUNTRY_COORDS = {
+    "United States of America": { lat: 39.8283, lng: -98.5795, zoom: 4 },
+    "China": { lat: 35.8617, lng: 104.1954, zoom: 4 },
+    "France": { lat: 46.2276, lng: 2.2137, zoom: 5 },
+    "United Kingdom": { lat: 55.3781, lng: -3.4360, zoom: 5 },
+    "Serbia": { lat: 44.0165, lng: 21.0059, zoom: 6 }
+};
+
 const CountriesLayer = ({ onHoverCountry, targetCountry, devOutlines }) => {
     const map = useMap();
     const dataLayerRef = useRef(null);
     const listenersRef = useRef([]);
+
+    // Auto-pan to target country
+    useEffect(() => {
+        if (!map) return;
+        const coords = COUNTRY_COORDS[targetCountry] || { lat: 20, lng: 0, zoom: 2 };
+        map.panTo({ lat: coords.lat, lng: coords.lng });
+        map.setZoom(coords.zoom);
+    }, [map, targetCountry]);
 
     useEffect(() => {
         if (!map || !window.google) return;
@@ -182,10 +195,10 @@ const CountriesLayer = ({ onHoverCountry, targetCountry, devOutlines }) => {
             }
 
             return {
-                fillColor: isTarget ? '#9400D3' : '#333333',
-                fillOpacity: isTarget ? 0.6 : (isDevOutline ? 0.2 : 0),
-                strokeWeight: isTarget ? 1 : (isDevOutline ? 2 : 0),
-                strokeColor: isDevOutline ? '#00FF00' : '#555',
+                fillColor: isTarget ? '#00FFFF' : '#333333',
+                fillOpacity: isTarget ? 0.7 : (isDevOutline ? 0.2 : 0),
+                strokeWeight: isTarget ? 3 : (isDevOutline ? 2 : 0),
+                strokeColor: isTarget ? '#00FFFF' : (isDevOutline ? '#00FF00' : '#555'),
                 visible: true
             };
         });
@@ -196,9 +209,9 @@ const CountriesLayer = ({ onHoverCountry, targetCountry, devOutlines }) => {
 
             dataLayer.overrideStyle(event.feature, {
                 fillOpacity: 0.9,
-                strokeWeight: 2,
+                strokeWeight: 4,
                 strokeColor: '#fff',
-                fillColor: countryName === targetCountry ? '#FF1493' : '#555555'
+                fillColor: countryName === targetCountry ? '#E0FFFF' : '#555555'
             });
             onHoverCountry(countryName);
         });
@@ -231,11 +244,25 @@ CountriesLayer.propTypes = {
     devOutlines: PropTypes.bool.isRequired,
 };
 
-export default function GlobePage() {
+export default function GlobePage({ backendResults }) {
     const [viewMode, setViewMode] = useState('state'); // 'state' or 'country'
     const [hoveredState, setHoveredState] = useState(null);
     const [hoveredCountry, setHoveredCountry] = useState(null);
     const [devOutlines, setDevOutlines] = useState(false);
+
+    // Derived values from backend API
+    const targetCountry = backendResults ? backendResults.impacted_country : "United States of America";
+    const nlSummary = backendResults ? backendResults.nl_summary : "No analysis data available. Please run an analysis on the Editor page first.";
+    const hasData = !!backendResults;
+    const est = backendResults?.data?.estimation;
+    const ctx = backendResults?.data?.context;
+
+    // Default to country view if we have backend results
+    useEffect(() => {
+        if (hasData) {
+            setViewMode('country');
+        }
+    }, [hasData]);
 
     return (
         <div className="globe-page-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
@@ -319,18 +346,20 @@ export default function GlobePage() {
                     position: 'absolute',
                     top: '20px',
                     right: '20px',
-                    backgroundColor: 'rgba(20, 20, 25, 0.9)',
-                    padding: '15px 20px',
-                    borderRadius: '8px',
-                    border: '1px solid #444',
+                    backgroundColor: 'rgba(15, 15, 20, 0.85)',
+                    backdropFilter: 'blur(12px)',
+                    padding: '20px 25px',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     zIndex: 10,
                     color: '#fff',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    minWidth: '250px',
-                    maxWidth: '350px'
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+                    minWidth: '300px',
+                    maxWidth: '420px',
+                    fontFamily: '"Inter", "Outfit", sans-serif'
                 }}>
-                    <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                        {viewMode === 'state' ? 'State Overview' : 'Country Overview'}
+                    <h3 style={{ margin: '0 0 15px 0', fontSize: '1.25rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px', fontWeight: '600', letterSpacing: '0.5px' }}>
+                        {viewMode === 'state' ? 'State Legislative Activity' : 'Global Policy Impact'}
                     </h3>
 
                     {viewMode === 'state' ? (
@@ -362,29 +391,58 @@ export default function GlobePage() {
                             </div>
                         )
                     ) : (
-                        hoveredCountry ? (
-                            <div>
-                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9400D3', marginBottom: '8px' }}>
-                                    {hoveredCountry}
+                        (hasData || hoveredCountry) ? (
+                            <div className="animate-fade-in">
+                                <div style={{ fontSize: '1.5rem', fontWeight: '800', color: 'white', marginBottom: '12px' }}>
+                                    {hoveredCountry || targetCountry}
                                 </div>
-                                {hoveredCountry === MOCK_ML_DATA.country ? (
-                                    <div>
-                                        <div style={{ color: '#ffb347', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.95rem' }}>
-                                            Predicted Highest Impact
+                                {(hoveredCountry === targetCountry || (!hoveredCountry && hasData)) ? (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                                        <div style={{ background: 'linear-gradient(135deg, rgba(0, 255, 255, 0.1), rgba(0, 127, 255, 0.15))', padding: '12px', borderRadius: '8px', border: '1px solid rgba(0, 255, 255, 0.4)', boxShadow: '0 0 15px rgba(0, 255, 255, 0.2)' }}>
+                                            <div style={{ color: '#00FFFF', fontWeight: 'bold', marginBottom: '6px', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '1px', textShadow: '0 0 5px rgba(0, 255, 255, 0.5)' }}>
+                                                Primary Impact Zone
+                                            </div>
+                                            <div style={{ color: '#e0e0e0', fontSize: '0.95rem', lineHeight: '1.6' }}>
+                                                {/* Split the summary by word to apply a subtle gradient to the text */}
+                                                <span style={{ background: '-webkit-linear-gradient(0deg, #fff, #87CEEB)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: '500' }}>
+                                                    {nlSummary}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.4' }}>
-                                            {MOCK_ML_DATA.momentumForecast}
+
+                                        {/* Dynamic Metrics */}
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                            <div style={{ flex: '1 1 45%', background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', borderLeft: '3px solid #00FFFF' }}>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Forecasted Support</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#00FFFF' }}>{est?.support_level || 'N/A'}</div>
+                                            </div>
+                                            <div style={{ flex: '1 1 45%', background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', borderLeft: '3px solid #32CD32' }}>
+                                                <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>System Confidence</div>
+                                                <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#32CD32' }}>{est ? `${(est.confidence * 100).toFixed(1)}%` : 'N/A'}</div>
+                                            </div>
+                                            {ctx && (
+                                                <>
+                                                    <div style={{ flex: '1 1 45%', background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', borderLeft: '3px solid #FF4500' }}>
+                                                        <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Civic/Policy Gap</div>
+                                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#FF4500' }}>{ctx.citizen_policymaker_gap.toFixed(1)}</div>
+                                                    </div>
+                                                    <div style={{ flex: '1 1 45%', background: 'rgba(0,0,0,0.3)', padding: '10px', borderRadius: '8px', borderLeft: '3px solid #9370DB' }}>
+                                                        <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase' }}>Domain Alignment</div>
+                                                        <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#9370DB' }}>{ctx.domain_alignment_score.toFixed(1)}/100</div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (
-                                    <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
-                                        No momentum data available for this region.
+                                    <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0', fontSize: '0.9rem' }}>
+                                        No specific impact predicted for this region. Global metrics are optimized for primary impact zones.
                                     </div>
                                 )}
                             </div>
                         ) : (
-                            <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
-                                Hover over a highlighted country to view predictive insights.
+                            <div style={{ color: '#aaa', fontStyle: 'italic', padding: '20px 0', textAlign: 'center', fontSize: '0.95rem' }}>
+                                Run an analysis to view predictive NLP and model insights.
                             </div>
                         )
                     )}
@@ -402,7 +460,7 @@ export default function GlobePage() {
                         {viewMode === 'state' ? (
                             <USStatesLayer onHoverState={setHoveredState} />
                         ) : (
-                            <CountriesLayer onHoverCountry={setHoveredCountry} targetCountry={MOCK_ML_DATA.country} devOutlines={devOutlines} />
+                            <CountriesLayer onHoverCountry={setHoveredCountry} targetCountry={targetCountry} devOutlines={devOutlines} />
                         )}
                     </Map>
                 </APIProvider>
@@ -410,3 +468,7 @@ export default function GlobePage() {
         </div>
     );
 }
+
+GlobePage.propTypes = {
+    backendResults: PropTypes.object
+};

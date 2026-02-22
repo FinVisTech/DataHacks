@@ -140,6 +140,102 @@ class PolicyTranslator:
         self._print_translation(policy_text, domain, stakeholders, support_pred, support_prob, similar_policies, domain_context)
 
 
+    def analyze_json(self, policy_text):
+        """Runs the translation pipeline and returns a JSON-serializable dictionary."""
+        # 1. Parse & Extract Features
+        domain = self.parser._classify_domain_nlp(policy_text)
+        feats = self.parser.extract_features(policy_text.lower())
+        stakeholders = self.parser.extract_stakeholders(policy_text.lower())
+        
+        df_new = pd.DataFrame([{
+            'policy_text': policy_text,
+            'domain': domain,
+            'stakeholders': stakeholders,
+            'word_count': len(policy_text.split()),
+            **feats
+        }])
+        
+        domain_context = self.alignment_df[self.alignment_df['domain'] == domain]
+        if not domain_context.empty:
+            df_new['policy_density_context'] = domain_context['regulation_intensity_index'].values[0] / 100.0
+            df_new['economic_pressure_context'] = domain_context['economic_pressure_index'].values[0] / 100.0
+            df_new['education_readiness_context'] = domain_context['readiness_index'].values[0] / 100.0
+        else:
+            df_new['policy_density_context'] = 0.5
+            df_new['economic_pressure_context'] = 0.5
+            df_new['education_readiness_context'] = 0.5
+            
+        # 2. Estimate Support
+        df_new['domain_encoded'] = df_new['domain'].apply(
+            lambda x: self.estimator['le_domain'].transform([x])[0] if x in self.estimator['le_domain'].classes_ else -1
+        )
+        df_new['stakeholder_encoded'] = df_new['stakeholders'].apply(
+            lambda x: self.estimator['le_stakeholder'].transform([x])[0] if x in self.estimator['le_stakeholder'].classes_ else -1
+        )
+        
+        X = df_new[self.estimator['feature_cols']]
+        X_scaled = self.estimator['scaler'].transform(X)
+        support_pred = self.estimator['model'].predict(X_scaled)[0]
+        support_probs = self.estimator['model'].predict_proba(X_scaled)[0]
+        support_prob = max(support_probs)
+        
+        # 3. Find Similar OECD Precedents
+        new_vec = self.vectorizer.transform([policy_text])
+        sims = cosine_similarity(new_vec, self.tfidf_matrix)[0]
+        top_candidates = sims.argsort()[-10:][::-1] 
+        
+        similar_policies = []
+        seen_titles = set()
+        for idx in top_candidates:
+            if len(similar_policies) >= 2:
+                break
+            if sims[idx] > 0.05:
+                row = self.oecd_corpus.iloc[idx]
+                title = str(row['policy_text']).strip()
+                if title == 'nan' or not title:
+                    title = "Unnamed AI Policy Initiative"
+                
+                if title not in seen_titles:
+                    similar_policies.append({
+                        'title': title,
+                        'country': str(row['country']),
+                        'similarity': float(sims[idx])
+                    })
+                    seen_titles.add(title)
+
+        # Context packaging
+        context_data = None
+        if not domain_context.empty:
+            c = domain_context.iloc[0]
+            context_data = {
+                'archetype': str(c['archetype']),
+                'citizen_policymaker_gap': float(c['citizen_policymaker_gap']),
+                'policy_lag_score': float(c['policy_lag_score']),
+                'regulation_intensity_index': float(c['regulation_intensity_index']),
+                'economic_pressure_index': float(c['economic_pressure_index']),
+                'readiness_index': float(c['readiness_index']),
+                'domain_alignment_score': float(c.get('domain_alignment_score', 50.0)),
+                'momentum_index': float(c.get('momentum_index', 50.0)),
+                'citizen_sentiment_index': float(c.get('citizen_sentiment_index', 50.0)),
+                'policymaker_support_index': float(c.get('policymaker_support_index', 50.0))
+            }
+
+        return {
+            'text': policy_text,
+            'classification': {
+                'domain': domain,
+                'stakeholders': stakeholders
+            },
+            'estimation': {
+                'support_level': str(support_pred),
+                'confidence': float(support_prob),
+                'probabilities': [float(p) for p in support_probs]
+            },
+            'context': context_data,
+            'similar_policies': similar_policies
+        }
+
+
     def _print_translation(self, text, domain, stakeholders, support, prob, similar, context):
         print("\n" + "=" * 80)
         print("🏛️  CIVIC POLICY TRANSLATOR")

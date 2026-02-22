@@ -4,6 +4,8 @@ import { exampleBills } from '../utils/examples';
 import uploadIcon from '../assets/upload.svg';
 
 export default function LeftPanel({
+    billFile,
+    setBillFile,
     billText,
     setBillText,
     topK,
@@ -19,6 +21,7 @@ export default function LeftPanel({
         const file = e.target.files[0];
         if (file) {
             setFileName(file.name);
+            setBillFile(file);
             const reader = new FileReader();
             reader.onload = (evt) => {
                 setBillText(evt.target.result);
@@ -33,13 +36,16 @@ export default function LeftPanel({
 
     const handleRunAnalysis = () => {
         // Fallback to example bill if completely empty for simulation purposes
-        if (!billText.trim()) {
+        if (!billText.trim() && !billFile) {
             setBillText(exampleBills[0].text);
-            // We need a short delay so state updates before running, 
-            // but for simplicity let's just run it with the example bill text directly
-            // inside simulate instead of relying on state batching
+            const blob = new Blob([exampleBills[0].text], { type: 'text/plain' });
+            blob.name = 'example.txt';
+            setBillFile(blob);
+            // Wait slightly for state updater
+            setTimeout(() => onRun(), 100);
+        } else {
+            onRun();
         }
-        onRun();
     };
 
     return (
