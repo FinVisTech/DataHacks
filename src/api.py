@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -34,6 +35,8 @@ def startup_event():
 
 @app.post("/api/analyze")
 def analyze_bill(file: UploadFile = File(...)):
+    # Add a delay to simulate serious number crunching
+    time.sleep(3)
     if not file.filename.endswith('.txt'):
         raise HTTPException(status_code=400, detail="Only .txt files are supported")
     
