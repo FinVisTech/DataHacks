@@ -678,5 +678,41 @@ mark {
   background-color: var(--accent-primary);
   box-shadow: var(--shadow-sm);
 }
-.home-header { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; background-color: #0b2f56; color: white; border-bottom: none; z-index: 10; height: 50px; }
 
+.home-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  background-color: #0b2f56;
+  color: white;
+  border-bottom: none;
+  z-index: 10;
+  height: 50px;
+}
+
+.header-main-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Georgia', serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  letter-spacing: 1px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.flag-icon {
+  height: 30px;
+  margin-left: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.flag-icon:hover {
+  transform: scale(1.1);
+}

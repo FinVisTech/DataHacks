@@ -31,8 +31,11 @@ function AppContent() {
         <img
           src="https://upload.wikimedia.org/wikipedia/en/a/a4/Flag_of_the_United_States.svg"
           alt="US Flag"
-          style={{ height: '30px', marginLeft: '1rem', border: '1px solid rgba(255,255,255,0.2)' }}
+          className="flag-icon"
+          onClick={() => navigate('/globe')}
         />
+
+        <h1 className="header-main-title">AI Policy Sentiment Analysis</h1>
 
         <nav className="top-nav" style={{ marginLeft: 'auto', background: 'transparent', border: 'none', marginRight: '1rem', display: 'flex', gap: '1rem' }}>
           <NavLink to="/" className="nav-link" style={{ color: 'rgba(255,255,255,0.7)' }}>
