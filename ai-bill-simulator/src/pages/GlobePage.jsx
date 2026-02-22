@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 
@@ -60,46 +60,34 @@ const getBaseStateData = (stateName) => {
     return LEGISLATION_DATA[stateName] || { proposed: 0, passed: 0 };
 };
 
-// Interpolate color from Red to Blue based on ratio (0 to 1)
 const interpolateHeatmapColor = (ratio) => {
-    // Red: rgb(255, 0, 0)
-    // Blue: rgb(0, 0, 255)
-    // We can output a hex string. 
-    // Low activity (ratio near 0) -> more Red
-    // High activity (ratio near 1) -> more Blue
-
-    // Clamp securely between 0 and 1
     const safeRatio = Math.max(0, Math.min(1, ratio));
-
     const r = Math.round(255 * (1 - safeRatio));
-    const g = 0; // Pure red -> pure blue gives purple in between. Or we could use a different gradient if requested, but pure red/blue requested.
+    const g = 0;
     const b = Math.round(255 * safeRatio);
-
     return `rgb(${r}, ${g}, ${b})`;
 };
 
-// Reusable Layer for US States GeoJSON
+const MOCK_ML_DATA = {
+    country: "France",
+    momentumForecast: "The proposed AI policies are expected to significantly accelerate France's tech sector momentum over the next 3-5 years. With streamlined regulations around AI R&D and clear guidelines on ethical deployments, startups and enterprise hubs such as Station F will see an influx of venture capital. The focus on establishing local sovereign models reduces overseas dependency, catalyzing domestic hardware expansion and compute clusters. We anticipate a 35% growth in AI-centric jobs and higher adoption rates among legacy industries like aviation and healthcare. The momentum is firmly positive, positioning France as a leading AI hub within the European Union."
+};
+
 const USStatesLayer = ({ onHoverState }) => {
     const map = useMap();
 
     useEffect(() => {
         if (!map || !window.google) return;
 
-        // Ensure we only load GeoJSON once for the map instance
-        if (!map.data._usStatesLoaded) {
-            map.data.loadGeoJson('/us-states.json');
-            map.data._usStatesLoaded = true;
-        }
+        const dataLayer = new window.google.maps.Data({ map });
+        dataLayer.loadGeoJson('/us-states.json');
 
-        // Style the states
-        map.data.setStyle((feature) => {
+        dataLayer.setStyle((feature) => {
             const stateName = feature.getProperty('name');
             const data = getBaseStateData(stateName);
 
-            // Calculate ratio based on enacted bills (Texas has the max at 25 in this dataset)
             const MAX_ENACTED = 25;
             const ratio = data.passed / MAX_ENACTED;
-
             let fillColor = interpolateHeatmapColor(ratio);
 
             return {
@@ -110,10 +98,9 @@ const USStatesLayer = ({ onHoverState }) => {
             };
         });
 
-        // Hover events
-        const mouseoverListener = map.data.addListener('mouseover', (event) => {
-            map.data.revertStyle();
-            map.data.overrideStyle(event.feature, {
+        const mouseoverListener = dataLayer.addListener('mouseover', (event) => {
+            dataLayer.revertStyle();
+            dataLayer.overrideStyle(event.feature, {
                 fillOpacity: 0.9,
                 strokeWeight: 2,
                 strokeColor: '#fff'
@@ -122,15 +109,15 @@ const USStatesLayer = ({ onHoverState }) => {
             onHoverState(stateName);
         });
 
-        const mouseoutListener = map.data.addListener('mouseout', (event) => {
-            map.data.revertStyle();
+        const mouseoutListener = dataLayer.addListener('mouseout', (event) => {
+            dataLayer.revertStyle();
             onHoverState(null);
         });
 
         return () => {
             window.google.maps.event.removeListener(mouseoverListener);
             window.google.maps.event.removeListener(mouseoutListener);
-            // Do not remove features on cleanup, map instance retains them.
+            dataLayer.setMap(null);
         };
     }, [map, onHoverState]);
 
@@ -141,15 +128,193 @@ USStatesLayer.propTypes = {
     onHoverState: PropTypes.func.isRequired,
 };
 
+const CountriesLayer = ({ onHoverCountry, targetCountry, devOutlines }) => {
+    const map = useMap();
+    const dataLayerRef = useRef(null);
+    const listenersRef = useRef([]);
+
+    useEffect(() => {
+        if (!map || !window.google) return;
+
+        if (!dataLayerRef.current) {
+            dataLayerRef.current = new window.google.maps.Data({ map });
+            dataLayerRef.current.loadGeoJson('/countries.json');
+        } else {
+            dataLayerRef.current.setMap(map);
+        }
+
+        const dataLayer = dataLayerRef.current;
+
+        // Clean up old listeners to prevent duplicates on dependency change
+        listenersRef.current.forEach(listener => {
+            window.google.maps.event.removeListener(listener);
+        });
+        listenersRef.current = [];
+
+        const DEMO_COUNTRIES = [
+            "United States of America", "France", "China", "United Kingdom",
+            "Argentina", "Armenia", "Australia", "Austria", "Belgium",
+            "Belgium - Brussels Capital", "Brazil", "Bulgaria", "Canada", "Chile",
+            "Colombia", "Costa Rica", "Croatia", "Cyprus", "Czech Republic",
+            "Denmark", "Egypt", "Estonia", "European Union", "Finland", "Germany",
+            "Greece", "Hungary", "Iceland", "India", "Indonesia", "Ireland",
+            "Israel", "Italy", "Japan", "Kazakhstan", "Kenya", "South Korea",
+            "Latvia", "Lithuania", "Luxembourg", "Malta", "Mauritius", "Mexico",
+            "Morocco", "Netherlands", "New Zealand", "Nigeria", "Norway", "Peru",
+            "Poland", "Portugal", "Romania", "Russia", "Rwanda", "Saudi Arabia",
+            "Serbia", "Singapore", "Slovakia", "Slovenia", "South Africa", "Spain",
+            "Sweden", "Switzerland", "Thailand", "Tunisia", "Turkey", "Uganda",
+            "Ukraine", "United Arab Emirates", "Uruguay", "Uzbekistan", "Vietnam"
+        ];
+
+        dataLayer.setStyle((feature) => {
+            const countryName = feature.getProperty('name');
+
+            if (!DEMO_COUNTRIES.includes(countryName) && countryName !== targetCountry) {
+                return { visible: false };
+            }
+
+            const isTarget = countryName === targetCountry;
+            const isDevOutline = devOutlines && DEMO_COUNTRIES.includes(countryName);
+
+            if (!isTarget && !isDevOutline) {
+                return { visible: false };
+            }
+
+            return {
+                fillColor: isTarget ? '#9400D3' : '#333333',
+                fillOpacity: isTarget ? 0.6 : (isDevOutline ? 0.2 : 0),
+                strokeWeight: isTarget ? 1 : (isDevOutline ? 2 : 0),
+                strokeColor: isDevOutline ? '#00FF00' : '#555',
+                visible: true
+            };
+        });
+
+        const mouseoverListener = dataLayer.addListener('mouseover', (event) => {
+            const countryName = event.feature.getProperty('name');
+            dataLayer.revertStyle();
+
+            dataLayer.overrideStyle(event.feature, {
+                fillOpacity: 0.9,
+                strokeWeight: 2,
+                strokeColor: '#fff',
+                fillColor: countryName === targetCountry ? '#FF1493' : '#555555'
+            });
+            onHoverCountry(countryName);
+        });
+
+        const mouseoutListener = dataLayer.addListener('mouseout', (event) => {
+            dataLayer.revertStyle();
+            onHoverCountry(null);
+        });
+
+        listenersRef.current.push(mouseoverListener, mouseoutListener);
+    }, [map, onHoverCountry, targetCountry, devOutlines]);
+
+    useEffect(() => {
+        return () => {
+            if (dataLayerRef.current) {
+                dataLayerRef.current.setMap(null);
+            }
+            listenersRef.current.forEach(listener => {
+                window.google.maps.event.removeListener(listener);
+            });
+        };
+    }, []);
+
+    return null;
+};
+
+CountriesLayer.propTypes = {
+    onHoverCountry: PropTypes.func.isRequired,
+    targetCountry: PropTypes.string.isRequired,
+    devOutlines: PropTypes.bool.isRequired,
+};
+
 export default function GlobePage() {
-    // State to track the currently hovered state from GeoJSON
+    const [viewMode, setViewMode] = useState('state'); // 'state' or 'country'
     const [hoveredState, setHoveredState] = useState(null);
+    const [hoveredCountry, setHoveredCountry] = useState(null);
+    const [devOutlines, setDevOutlines] = useState(false);
 
     return (
         <div className="globe-page-container" style={{ width: '100%', height: '100%', position: 'relative' }}>
             <div style={{ width: '100%', height: '100%', position: 'relative' }}>
 
-                {/* State Info Overlay UI */}
+                {/* View Toggle */}
+                <div style={{
+                    position: 'absolute',
+                    top: '20px',
+                    left: '20px',
+                    backgroundColor: 'rgba(20, 20, 25, 0.9)',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid #444',
+                    zIndex: 10,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    gap: '12px',
+                    minWidth: '180px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                }}>
+                    <div style={{ display: 'flex', background: '#222', borderRadius: '8px', overflow: 'hidden', border: '1px solid #444' }}>
+                        <button
+                            onClick={() => setViewMode('state')}
+                            style={{
+                                flex: 1,
+                                background: viewMode === 'state' ? '#007FFF' : 'transparent',
+                                color: viewMode === 'state' ? '#fff' : '#888',
+                                border: 'none',
+                                padding: '8px 12px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                transition: 'background-color 0.2s',
+                            }}
+                        >
+                            States
+                        </button>
+                        <button
+                            onClick={() => setViewMode('country')}
+                            style={{
+                                flex: 1,
+                                background: viewMode === 'country' ? '#007FFF' : 'transparent',
+                                color: viewMode === 'country' ? '#fff' : '#888',
+                                border: 'none',
+                                padding: '8px 12px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                transition: 'background-color 0.2s',
+                            }}
+                        >
+                            Countries
+                        </button>
+                    </div>
+
+                    {viewMode === 'country' && (
+                        <button
+                            onClick={() => setDevOutlines(prev => !prev)}
+                            style={{
+                                background: devOutlines ? '#228B22' : '#333',
+                                border: '1px solid #555',
+                                color: '#fff',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                outline: 'none',
+                                fontSize: '0.85rem',
+                                width: '100%',
+                                transition: 'background-color 0.2s',
+                            }}
+                        >
+                            Dev Outlines: {devOutlines ? 'ON' : 'OFF'}
+                        </button>
+                    )}
+                </div>
+
+                {/* Info Overlay UI */}
                 <div style={{
                     position: 'absolute',
                     top: '20px',
@@ -158,41 +323,70 @@ export default function GlobePage() {
                     padding: '15px 20px',
                     borderRadius: '8px',
                     border: '1px solid #444',
-                    zIndex: 10, // Ensure it floats above the map
+                    zIndex: 10,
                     color: '#fff',
                     boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
-                    minWidth: '250px'
+                    minWidth: '250px',
+                    maxWidth: '350px'
                 }}>
                     <h3 style={{ margin: '0 0 10px 0', fontSize: '1.1rem', borderBottom: '1px solid #333', paddingBottom: '8px' }}>
-                        State Overview
+                        {viewMode === 'state' ? 'State Overview' : 'Country Overview'}
                     </h3>
 
-                    {hoveredState ? (
-                        <div>
-                            <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#007FFF', marginBottom: '8px' }}>
-                                {hoveredState}
+                    {viewMode === 'state' ? (
+                        hoveredState ? (
+                            <div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#007FFF', marginBottom: '8px' }}>
+                                    {hoveredState}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <span style={{ color: '#aaa' }}>Total Proposed AI Bills:</span>
+                                    <span style={{ fontWeight: 'bold' }}>{getBaseStateData(hoveredState).proposed}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <span style={{ color: '#aaa' }}>Number of AI Bills Enacted:</span>
+                                    <span style={{ fontWeight: 'bold', color: getBaseStateData(hoveredState).passed > 0 ? '#32CD32' : 'inherit' }}>
+                                        {getBaseStateData(hoveredState).passed}
+                                    </span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #333' }}>
+                                    <span style={{ color: '#aaa' }}>Enacted Level:</span>
+                                    <span style={{ fontWeight: 'bold', color: interpolateHeatmapColor(getBaseStateData(hoveredState).passed / 25) }}>
+                                        {getBaseStateData(hoveredState).passed > 15 ? 'Very High' : (getBaseStateData(hoveredState).passed > 5 ? 'Moderate' : (getBaseStateData(hoveredState).passed > 0 ? 'Low' : 'None'))}
+                                    </span>
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ color: '#aaa' }}>Total Proposed AI Bills:</span>
-                                <span style={{ fontWeight: 'bold' }}>{getBaseStateData(hoveredState).proposed}</span>
+                        ) : (
+                            <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
+                                Hover over a state on the map to view recent AI bill data.
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                <span style={{ color: '#aaa' }}>Number of AI Bills Enacted:</span>
-                                <span style={{ fontWeight: 'bold', color: getBaseStateData(hoveredState).passed > 0 ? '#32CD32' : 'inherit' }}>
-                                    {getBaseStateData(hoveredState).passed}
-                                </span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #333' }}>
-                                <span style={{ color: '#aaa' }}>Enacted Level:</span>
-                                <span style={{ fontWeight: 'bold', color: interpolateHeatmapColor(getBaseStateData(hoveredState).passed / 25) }}>
-                                    {getBaseStateData(hoveredState).passed > 15 ? 'Very High' : (getBaseStateData(hoveredState).passed > 5 ? 'Moderate' : (getBaseStateData(hoveredState).passed > 0 ? 'Low' : 'None'))}
-                                </span>
-                            </div>
-                        </div>
+                        )
                     ) : (
-                        <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
-                            Hover over a state on the map to view recent AI bill data.
-                        </div>
+                        hoveredCountry ? (
+                            <div>
+                                <div style={{ fontSize: '1.25rem', fontWeight: 'bold', color: '#9400D3', marginBottom: '8px' }}>
+                                    {hoveredCountry}
+                                </div>
+                                {hoveredCountry === MOCK_ML_DATA.country ? (
+                                    <div>
+                                        <div style={{ color: '#ffb347', fontWeight: 'bold', marginBottom: '8px', fontSize: '0.95rem' }}>
+                                            Predicted Highest Impact
+                                        </div>
+                                        <div style={{ color: '#ccc', fontSize: '0.9rem', lineHeight: '1.4' }}>
+                                            {MOCK_ML_DATA.momentumForecast}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
+                                        No momentum data available for this region.
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div style={{ color: '#aaa', fontStyle: 'italic', padding: '10px 0' }}>
+                                Hover over a highlighted country to view predictive insights.
+                            </div>
+                        )
                     )}
                 </div>
 
@@ -205,7 +399,11 @@ export default function GlobePage() {
                         mapId="DEMO_MAP_ID"
                         style={{ width: '100%', height: '100%' }}
                     >
-                        <USStatesLayer onHoverState={setHoveredState} />
+                        {viewMode === 'state' ? (
+                            <USStatesLayer onHoverState={setHoveredState} />
+                        ) : (
+                            <CountriesLayer onHoverCountry={setHoveredCountry} targetCountry={MOCK_ML_DATA.country} devOutlines={devOutlines} />
+                        )}
                     </Map>
                 </APIProvider>
             </div>
