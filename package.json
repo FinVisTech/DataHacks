@@ -3,6 +3,6 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "build": "cd ai-bill-simulator && npm install && npm run build"
+        "build": "cd ai-bill-simulator && npm install && npm run build && cd .. && cp -r ai-bill-simulator/dist ."
     }
 }
