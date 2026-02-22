@@ -6,7 +6,7 @@ economic pressure and citizen sentiment to forecast which domains
 will see the most regulatory momentum in the near future.
 
 Outputs:
-    - outputs/step4_momentum_forecast.csv
+    - outputs/step4_momentum_indicator.csv
     - Terminal dashboard showing priority domains and early warnings
 """
 
@@ -96,10 +96,10 @@ def generate_forecast(domain_df, growth_rates):
     
     return forecast.sort_values(by='momentum_index', ascending=False)
 
-def print_forecast_dashboard(forecast_df):
-    """Outputs the forecast dashboard to terminal."""
+def print_indicator_dashboard(forecast_df):
+    """Outputs the indicator dashboard to terminal."""
     print("\n" + "=" * 80)
-    print("📈 REGULATION MOMENTUM FORECAST")
+    print("📈 REGULATION MOMENTUM INDICATOR")
     print("=" * 80)
     
     print("\n🔹 PRIORITY DOMAINS (Highest Expected Activity)")
@@ -120,7 +120,7 @@ def print_forecast_dashboard(forecast_df):
 
 def main():
     print("="*80)
-    print("🚀 Step 4: Regulation Momentum Forecast")
+    print("🚀 Step 4: Regulation Momentum Indicator")
     print("="*80)
     
     policies_path = Path('data/step2_estimated_policies.csv')
@@ -137,17 +137,17 @@ def main():
     print("[2/3] Analyzing historical growth trends (Regression)...")
     growth_rates = calculate_historical_growth(policies_df)
     
-    print("[3/3] Generating momentum forecasts and early warning signals...")
+    print("[3/3] Generating momentum indicators and early warning signals...")
     forecast_df = generate_forecast(domain_df, growth_rates)
     
     # Ensure data folder exists
     Path('data').mkdir(exist_ok=True)
-    out_path = 'data/step4_momentum_forecast.csv'
+    out_path = 'data/step4_momentum_indicator.csv'
     forecast_df.to_csv(out_path, index=False)
-    print(f"\n  ✓ Saved momentum forecast data to: {out_path}")
+    print(f"\n  ✓ Saved momentum indicator data to: {out_path}")
     
     # Display
-    print_forecast_dashboard(forecast_df)
+    print_indicator_dashboard(forecast_df)
     
     print("\n" + "="*80)
     print("✅ Step 4 complete. Next: Proceed to Step 5 (Policy Translator).")

@@ -90,13 +90,16 @@ class PolicyTranslator:
         # Mock Context indices (in reality from Step 3 averages or real API)
         domain_context = self.alignment_df[self.alignment_df['domain'] == domain]
         if not domain_context.empty:
-            df_new['policy_density_context'] = domain_context['regulation_intensity_index'].values[0] / 100.0
+            # We use policy_activity_index as a proxy for density if density wasn't passed directly
+            df_new['policy_density_context'] = domain_context['policy_activity_index'].values[0] / 100.0
             df_new['economic_pressure_context'] = domain_context['economic_pressure_index'].values[0] / 100.0
             df_new['education_readiness_context'] = domain_context['readiness_index'].values[0] / 100.0
+            df_new['policy_action_context'] = 0.5 # Default middle country action context
         else:
             df_new['policy_density_context'] = 0.5
             df_new['economic_pressure_context'] = 0.5
             df_new['education_readiness_context'] = 0.5
+            df_new['policy_action_context'] = 0.5
             
         # 2. Estimate Support
         df_new['domain_encoded'] = df_new['domain'].apply(

@@ -1,0 +1,43 @@
+# Data Provenance for AI Civic Alignment Context Variables
+# Maps internal metrics to specific data tables from the 2025 AI Index Report
+
+provenance_layer:
+  citizen_sentiment_index:
+    source_file: "8. Public Opinion/Data/fig_8.1.3.csv"
+    section: "8. Public Opinion"
+    metric_name: "Products and services using artificial intelligence make me excited"
+    unit: "% agreeing with statement"
+    population: "Citizens (Country-level polling)"
+    notes: "Measures excitement about AI products and services to proxy public appetite/demand."
+
+  official_sentiment_index:
+    source_file: "8. Public Opinion/Data/fig_8.2.2.csv"
+    section: "8. Public Opinion"
+    metric_name: "Various Policy Areas (e.g., Stricter data privacy regulations)"
+    unit: "% of respondents"
+    population: "Citizens / Planners"
+    notes: "Used as the baseline target variable for policymaker/official support estimation in Step 2. Renamed from citizen_sentiment_index to official_sentiment_index to reflect its framing."
+
+  economic_pressure_index:
+    source_file: "4. Economy/Data/fig_4.2.1.csv"
+    section: "4. Economy"
+    metric_name: "AI job postings (% of all job postings)"
+    unit: "Percentage"
+    population: "Countries"
+    notes: "Uses the percentage of AI job postings as a proxy for economic integration and pressure to regulate."
+
+  policy_action_index:
+    source_file: "6. Policy and Governance/Data/fig_6.2.1.csv"
+    section: "6. Policy and Governance"
+    metric_name: "Number of AI-related bills passed into law, 2016-24"
+    unit: "Count"
+    population: "Geographic Area (Countries/Regions)"
+    notes: "Measures the sheer volume of legislative action taken by a country as a proxy for regulatory readiness/intensity."
+
+  education_readiness_index:
+    source_file: "7. Education/Data/fig_7.3.13.csv"
+    section: "7. Education"
+    metric_name: "Computer Science Degree Graduates Availability"
+    unit: "Coverage"
+    population: "Countries"
+    notes: "Proxies education readiness via CS program tracking data available for various countries."

@@ -3,7 +3,8 @@ Step 3: Citizen-Policymaker-Government Alignment Engine
 
 This module serves as the core of the AI Civic Alignment System. It:
 1. Aggregates data by domain from Step 2.
-2. Computes the 5 core alignment gap metrics.
+2. Computes the 5 core alignment gap metrics (integrating Stanford Citizen 
+   Sentiment and our Estimated Policymaker Support).
 3. Uses K-Means to cluster domains by alignment archetypes.
 4. Uses Isolation Forest to detect severe alignment anomalies (gaps).
 
@@ -22,6 +23,18 @@ from sklearn.preprocessing import StandardScaler
 
 warnings.filterwarnings('ignore')
 
+def get_real_citizen_sentiment():
+    """Extracts base citizen sentiment from Stanford fig_8.1.3.csv"""
+    try:
+        p_path = Path("data/PUBLIC DATA_ 2025 AI Index Report/8. Public Opinion/Data/fig_8.1.3.csv")
+        df = pd.read_csv(p_path)
+        # Average the agreement % globally as a base rate
+        base_agreement = df['% agreeing with statement'].mean() * 100
+        return base_agreement
+    except Exception as e:
+        print(f"  ⚠️ Warning: Could not load Stanford Citizen Sentiment: {e}")
+        return 50.0 # Neural base
+
 def compute_alignment_metrics(df):
     """Aggregates policy data into domain-level indices and gaps."""
     # 1. Map Support Buckets to numeric values for indexing
@@ -29,35 +42,36 @@ def compute_alignment_metrics(df):
     df['policymaker_score_num'] = df['estimated_support_bucket'].map(support_map)
     df['policymaker_score_num'] = df['policymaker_score_num'].fillna(50) # fallback
     
-    # 2. Aggregate by Domain
-    domain_groups = df.groupby('domain')
+    # 2. Extract Base Citizen Sentiment
+    global_citizen_sentiment = get_real_citizen_sentiment()
     
+    # 3. Aggregate by Domain
+    domain_groups = df.groupby('domain')
     alignment_data = []
     
     for domain, group in domain_groups:
-        # Citizen Sentiment (from Stanford labeled policies mapped to 0-100 scale)
+        # Official Sentiment (Target variable polled in Stanford 8.2.2 data)
         stanford_subset = group[group['source'] == 'Stanford']
         if len(stanford_subset) > 0:
-            # support_score is already conceptually -100 to 100. Shift to 0 to 100.
-            raw_sentiment = stanford_subset['support_score'].mean()
-            citizen_index = (raw_sentiment + 100) / 2
+            raw_official_sentiment = stanford_subset['support_score'].mean()
+            official_index = (raw_official_sentiment + 100) / 2
         else:
-            # Fallback to general average if domain wasn't explicitly polled
-            citizen_index = 50.0 
+            official_index = 50.0 
             
-        # Policymaker Support (Estimated values for all policies)
+        # Policymaker Support (Estimated values for all OECD policies)
         policymaker_index = group['policymaker_score_num'].mean()
         
-        # Regulation Intensity (Density of policies relative to the max density domain)
+        # Policy Activity / Action (Sheer volume of legislation mapped to the domain)
         intensity = len(group)
         
         # Context Indices (from feature engine)
-        readiness_index = group['education_readiness_context'].mean() * 100
-        economic_index = group['economic_pressure_context'].mean() * 100
+        readiness_index = group['education_readiness_context'].mean()
+        economic_index = group['economic_pressure_context'].mean()
         
         alignment_data.append({
             'domain': domain,
-            'citizen_sentiment_index': citizen_index,
+            'citizen_sentiment_index': global_citizen_sentiment,
+            'official_sentiment_index': official_index,
             'policymaker_support_index': policymaker_index,
             'raw_intensity_count': intensity,
             'readiness_index': readiness_index,
@@ -66,35 +80,42 @@ def compute_alignment_metrics(df):
         
     domain_df = pd.DataFrame(alignment_data)
     
-    # Normalize Regulation Intensity to 0-100 scale based on relative density
+    # Normalize Policy Activity to 0-100 scale based on relative density
     max_intensity = domain_df['raw_intensity_count'].max()
-    domain_df['regulation_intensity_index'] = (domain_df['raw_intensity_count'] / max_intensity) * 100
+    domain_df['policy_activity_index'] = (domain_df['raw_intensity_count'] / max_intensity) * 100
     
-    # 3. Compute Gap Metrics
-    # Citizen–Policymaker Gap
+    # 4. Compute Core Gap Metrics
+    
+    # Citizen–Policymaker Gap (Difference between broad public appetite and institutional support)
     domain_df['citizen_policymaker_gap'] = abs(domain_df['citizen_sentiment_index'] - domain_df['policymaker_support_index'])
     
-    # Policymaker–Action Gap
-    domain_df['policymaker_action_gap'] = abs(domain_df['policymaker_support_index'] - domain_df['regulation_intensity_index'])
+    # Policymaker–Action Gap (Difference between institutional support and actual legislation executed)
+    domain_df['policymaker_action_gap'] = abs(domain_df['policymaker_support_index'] - domain_df['policy_activity_index'])
     
-    # Citizen–Action Gap
-    domain_df['citizen_action_gap'] = abs(domain_df['citizen_sentiment_index'] - domain_df['regulation_intensity_index'])
+    # Citizen–Action Gap (Direct translation of public will into law)
+    domain_df['citizen_action_gap'] = abs(domain_df['citizen_sentiment_index'] - domain_df['policy_activity_index'])
     
     # Domain Alignment Score (100 = perfect alignment, 0 = total disconnect)
     avg_gap = domain_df[['citizen_policymaker_gap', 'policymaker_action_gap', 'citizen_action_gap']].mean(axis=1)
     domain_df['domain_alignment_score'] = 100 - avg_gap
     
     # Policy Lag Score (Positive = regulation is lagging behind economic pressure)
-    domain_df['policy_lag_score'] = domain_df['economic_pressure_index'] - domain_df['regulation_intensity_index']
+    domain_df['policy_lag_score'] = domain_df['economic_pressure_index'] - domain_df['policy_activity_index']
     
     return domain_df
 
 def apply_machine_learning(domain_df):
     """Applies clustering and anomaly detection to the domain metrics."""
     # Features for ML
-    features = ['citizen_sentiment_index', 'policymaker_support_index', 
-                'regulation_intensity_index', 'economic_pressure_index']
+    features = ['official_sentiment_index', 'policymaker_support_index', 
+                'policy_activity_index', 'economic_pressure_index']
     
+    # Fill any NaNs that might have slipped through from Step 2 with median values
+    for feat in features:
+        domain_df[feat] = domain_df[feat].fillna(domain_df[feat].median())
+        # If the entire column was NaN (e.g. median is NaN), fill with 50.0
+        domain_df[feat] = domain_df[feat].fillna(50.0)
+        
     X = domain_df[features]
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -156,9 +177,9 @@ def print_dashboard(domain_df):
             print(f"   Insight:         Regulation outpaces economic necessity (Lag: {lag:.1f})")
             
         gaps = {
-            'Citizen vs Policymaker': row['citizen_policymaker_gap'],
-            'Policymaker vs Action': row['policymaker_action_gap'],
-            'Citizen vs Action': row['citizen_action_gap']
+            'Citizen Appetite vs Institutional': row['citizen_policymaker_gap'],
+            'Institutional vs Legislative Action': row['policymaker_action_gap'],
+            'Citizen Appetite vs Legislative Action': row['citizen_action_gap']
         }
         biggest_gap = max(gaps, key=gaps.get)
         print(f"   Largest Gap:     {biggest_gap} ({gaps[biggest_gap]:.1f})")
