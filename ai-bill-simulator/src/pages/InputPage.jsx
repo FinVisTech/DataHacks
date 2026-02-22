@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import LeftPanel from '../components/LeftPanel';
 
 export default function InputPage({
@@ -24,3 +24,15 @@ export default function InputPage({
         </div>
     );
 }
+
+InputPage.propTypes = {
+    billText: PropTypes.string.isRequired,
+    setBillText: PropTypes.func.isRequired,
+    audience: PropTypes.string.isRequired,
+    setAudience: PropTypes.func.isRequired,
+    topK: PropTypes.number.isRequired,
+    setTopK: PropTypes.func.isRequired,
+    tau: PropTypes.number.isRequired,
+    setTau: PropTypes.func.isRequired,
+    onRun: PropTypes.func.isRequired,
+};

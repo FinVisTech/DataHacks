@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { APIProvider, Map, useMap } from '@vis.gl/react-google-maps';
 
 // Reusable Polygon Component
@@ -38,6 +39,12 @@ const RegionPolygon = ({ paths, color, visible }) => {
     }, [map, paths, color, visible]);
 
     return null;
+};
+
+RegionPolygon.propTypes = {
+    paths: PropTypes.arrayOf(PropTypes.object).isRequired,
+    color: PropTypes.string.isRequired,
+    visible: PropTypes.bool.isRequired,
 };
 
 import { REGIONS } from '../data/regions';

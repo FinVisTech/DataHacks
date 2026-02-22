@@ -1,4 +1,4 @@
-import React from 'react';
+import PropTypes from 'prop-types';
 import { useNavigate } from 'react-router-dom';
 import RightPanel from '../components/RightPanel';
 
@@ -24,3 +24,11 @@ export default function ResultsPage({
         </div>
     );
 }
+
+ResultsPage.propTypes = {
+    results: PropTypes.object,
+    billText: PropTypes.string.isRequired,
+    audience: PropTypes.string.isRequired,
+    topK: PropTypes.number.isRequired,
+    tau: PropTypes.number.isRequired,
+};
