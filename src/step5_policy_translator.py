@@ -90,8 +90,8 @@ class PolicyTranslator:
         # Mock Context indices (in reality from Step 3 averages or real API)
         domain_context = self.alignment_df[self.alignment_df['domain'] == domain]
         if not domain_context.empty:
-            # We use policy_activity_index as a proxy for density if density wasn't passed directly
-            df_new['policy_density_context'] = domain_context['policy_activity_index'].values[0] / 100.0
+            activity_col = 'policy_activity_index' if 'policy_activity_index' in domain_context.columns else 'regulation_intensity_index'
+            df_new['policy_density_context'] = domain_context[activity_col].values[0] / 100.0
             df_new['economic_pressure_context'] = domain_context['economic_pressure_index'].values[0] / 100.0
             df_new['education_readiness_context'] = domain_context['readiness_index'].values[0] / 100.0
             df_new['policy_action_context'] = 0.5 # Default middle country action context
@@ -186,7 +186,8 @@ class PolicyTranslator:
         
         domain_context = self.alignment_df[self.alignment_df['domain'] == domain]
         if not domain_context.empty:
-            df_new['policy_density_context'] = domain_context['policy_activity_index'].values[0] / 100.0
+            activity_col = 'policy_activity_index' if 'policy_activity_index' in domain_context.columns else 'regulation_intensity_index'
+            df_new['policy_density_context'] = domain_context[activity_col].values[0] / 100.0
             df_new['economic_pressure_context'] = domain_context['economic_pressure_index'].values[0] / 100.0
             df_new['education_readiness_context'] = domain_context['readiness_index'].values[0] / 100.0
             df_new['policy_action_context'] = 0.5
@@ -261,7 +262,7 @@ class PolicyTranslator:
                 'archetype': str(c['archetype']),
                 'citizen_policymaker_gap': float(c['citizen_policymaker_gap']),
                 'policy_lag_score': float(c['policy_lag_score']),
-                'regulation_intensity_index': float(c['regulation_intensity_index']),
+                'regulation_intensity_index': float(c.get('regulation_intensity_index', c.get('policy_activity_index', 50.0))),
                 'economic_pressure_index': float(c['economic_pressure_index']),
                 'readiness_index': float(c['readiness_index']),
                 'domain_alignment_score': float(c.get('domain_alignment_score', 50.0)),
