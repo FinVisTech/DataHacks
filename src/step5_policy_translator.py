@@ -114,30 +114,56 @@ class PolicyTranslator:
         support_pred = self.estimator['model'].predict(X_scaled)[0]
         support_prob = max(self.estimator['model'].predict_proba(X_scaled)[0])
         
-        # 3. Find Similar OECD Precedents
+        # 3. Find Similar OECD Precedents (Composite Similarity Engine)
         new_vec = self.vectorizer.transform([policy_text])
         sims = cosine_similarity(new_vec, self.tfidf_matrix)[0]
-        # Get top 10 candidates to account for potential duplicates
-        top_candidates = sims.argsort()[-10:][::-1] 
+        
+        # Get a larger pool of candidates to re-rank
+        candidate_indices = sims.argsort()[-50:][::-1] 
+        
+        scored_candidates = []
+        for idx in candidate_indices:
+            base_sim = sims[idx]
+            if base_sim < 0.02: continue # Ignore unrelated noise
+            
+            row = self.oecd_corpus.iloc[idx]
+            
+            # Composite Scoring Logic
+            # Bonus +0.3 for domain match, +0.2 for stakeholder match
+            domain_bonus = 0.3 if str(row.get('domain', '')).lower() == domain.lower() else 0.0
+            stake_bonus = 0.2 if str(row.get('stakeholders', '')).lower() == stakeholders.lower() else 0.0
+            
+            composite_score = base_sim + domain_bonus + stake_bonus
+            
+            scored_candidates.append({
+                'idx': idx,
+                'composite_score': composite_score,
+                'lexical_sim': base_sim
+            })
+            
+        # Re-rank by composite score
+        scored_candidates = sorted(scored_candidates, key=lambda x: x['composite_score'], reverse=True)
         
         similar_policies = []
         seen_titles = set()
-        for idx in top_candidates:
+        for cand in scored_candidates:
             if len(similar_policies) >= 2:
                 break
-            if sims[idx] > 0.05: # threshold
-                row = self.oecd_corpus.iloc[idx]
-                title = str(row['policy_text']).strip()
-                if title == 'nan' or not title:
-                    title = "Unnamed AI Policy Initiative"
                 
-                if title not in seen_titles:
-                    similar_policies.append({
-                        'title': title,
-                        'country': str(row['country']),
-                        'similarity': sims[idx]
-                    })
-                    seen_titles.add(title)
+            idx = cand['idx']
+            row = self.oecd_corpus.iloc[idx]
+            title = str(row['policy_text']).strip()
+            if title == 'nan' or not title:
+                title = "Unnamed AI Policy Initiative"
+            
+            if title not in seen_titles:
+                similar_policies.append({
+                    'title': title,
+                    'country': str(row['country']),
+                    'similarity': cand['composite_score'],
+                    'lexical_match': cand['lexical_sim']
+                })
+                seen_titles.add(title)
         
         # Format Translation Output
         self._print_translation(policy_text, domain, stakeholders, support_pred, support_prob, similar_policies, domain_context)
@@ -160,13 +186,15 @@ class PolicyTranslator:
         
         domain_context = self.alignment_df[self.alignment_df['domain'] == domain]
         if not domain_context.empty:
-            df_new['policy_density_context'] = domain_context['regulation_intensity_index'].values[0] / 100.0
+            df_new['policy_density_context'] = domain_context['policy_activity_index'].values[0] / 100.0
             df_new['economic_pressure_context'] = domain_context['economic_pressure_index'].values[0] / 100.0
             df_new['education_readiness_context'] = domain_context['readiness_index'].values[0] / 100.0
+            df_new['policy_action_context'] = 0.5
         else:
             df_new['policy_density_context'] = 0.5
             df_new['economic_pressure_context'] = 0.5
             df_new['education_readiness_context'] = 0.5
+            df_new['policy_action_context'] = 0.5
             
         # 2. Estimate Support
         df_new['domain_encoded'] = df_new['domain'].apply(
@@ -182,29 +210,48 @@ class PolicyTranslator:
         support_probs = self.estimator['model'].predict_proba(X_scaled)[0]
         support_prob = max(support_probs)
         
-        # 3. Find Similar OECD Precedents
+        # 3. Find Similar OECD Precedents (Composite Similarity Engine)
         new_vec = self.vectorizer.transform([policy_text])
         sims = cosine_similarity(new_vec, self.tfidf_matrix)[0]
-        top_candidates = sims.argsort()[-10:][::-1] 
+        candidate_indices = sims.argsort()[-50:][::-1] 
+        
+        scored_candidates = []
+        for idx in candidate_indices:
+            base_sim = sims[idx]
+            if base_sim < 0.02: continue
+            
+            row = self.oecd_corpus.iloc[idx]
+            domain_bonus = 0.3 if str(row.get('domain', '')).lower() == domain.lower() else 0.0
+            stake_bonus = 0.2 if str(row.get('stakeholders', '')).lower() == stakeholders.lower() else 0.0
+            composite_score = base_sim + domain_bonus + stake_bonus
+            
+            scored_candidates.append({
+                'idx': idx,
+                'composite_score': composite_score,
+                'lexical_sim': base_sim
+            })
+            
+        scored_candidates = sorted(scored_candidates, key=lambda x: x['composite_score'], reverse=True)
         
         similar_policies = []
         seen_titles = set()
-        for idx in top_candidates:
+        for cand in scored_candidates:
             if len(similar_policies) >= 2:
                 break
-            if sims[idx] > 0.05:
-                row = self.oecd_corpus.iloc[idx]
-                title = str(row['policy_text']).strip()
-                if title == 'nan' or not title:
-                    title = "Unnamed AI Policy Initiative"
-                
-                if title not in seen_titles:
-                    similar_policies.append({
-                        'title': title,
-                        'country': str(row['country']),
-                        'similarity': float(sims[idx])
-                    })
-                    seen_titles.add(title)
+            idx = cand['idx']
+            row = self.oecd_corpus.iloc[idx]
+            title = str(row['policy_text']).strip()
+            if title == 'nan' or not title:
+                title = "Unnamed AI Policy Initiative"
+            
+            if title not in seen_titles:
+                similar_policies.append({
+                    'title': title,
+                    'country': str(row['country']),
+                    'similarity': float(cand['composite_score']),
+                    'lexical_match': float(cand['lexical_sim'])
+                })
+                seen_titles.add(title)
 
         # Context packaging
         context_data = None
