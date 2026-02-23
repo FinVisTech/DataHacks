@@ -15,6 +15,10 @@ import pickle
 import argparse
 import pandas as pd
 from pathlib import Path
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import warnings
@@ -69,8 +73,37 @@ class PolicyTranslator:
         # Initialize Parser for NLP
         self.parser = CivicPolicyParser(use_api=True) # Default to API for accuracy
 
-    def analyze(self, policy_text):
-        """Runs the translation pipeline on a new text."""
+    def analyze(self, policy_input):
+        """Runs the translation pipeline on a new text or PDF path."""
+        policy_text = policy_input
+        
+        # Check if input is a PDF file
+        if policy_input.lower().endswith('.pdf'):
+            path = Path(policy_input)
+            if path.exists():
+                if PdfReader is None:
+                    print("❌ Error: pypdf library not found. Install it with 'pip install pypdf'.")
+                    return
+                print(f"📄 Extracting text from PDF: {policy_input}...")
+                try:
+                    reader = PdfReader(path)
+                    text_parts = []
+                    for page in reader.pages:
+                        extracted = page.extract_text()
+                        if extracted:
+                            text_parts.append(extracted)
+                    policy_text = " ".join(text_parts)
+                    if not policy_text.strip():
+                        print("⚠️ Warning: No text could be extracted from the PDF.")
+                        return
+                except Exception as e:
+                    print(f"❌ Error reading PDF: {e}")
+                    return
+            else:
+                print(f"❌ Error: File not found: {policy_input}")
+                return
+
+        # 1. Parse & Extract Features
         # 1. Parse & Extract Features
         # Note: In a real app we'd use use_api=True for _classify_domain_nlp, 
         # but for fast translation we'll use Keyword fallback here if token is missing.
