@@ -77,7 +77,7 @@ class PolicyTranslator:
         """Runs the translation pipeline on a new text or PDF path."""
         policy_text = policy_input
         
-        # Check if input is a PDF file
+        # Check if input is a PDF or TXT file
         if policy_input.lower().endswith('.pdf'):
             path = Path(policy_input)
             if path.exists():
@@ -98,6 +98,22 @@ class PolicyTranslator:
                         return
                 except Exception as e:
                     print(f"❌ Error reading PDF: {e}")
+                    return
+            else:
+                print(f"❌ Error: File not found: {policy_input}")
+                return
+        elif policy_input.lower().endswith('.txt'):
+            path = Path(policy_input)
+            if path.exists():
+                print(f"📄 Reading text from file: {policy_input}...")
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        policy_text = f.read()
+                    if not policy_text.strip():
+                        print("⚠️ Warning: The text file is empty.")
+                        return
+                except Exception as e:
+                    print(f"❌ Error reading file: {e}")
                     return
             else:
                 print(f"❌ Error: File not found: {policy_input}")

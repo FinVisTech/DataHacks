@@ -1,0 +1,94 @@
+KINGDOM OF NORWAY
+PROPOSED LEGISLATION
+
+File Name: norway_AI_legislation.txt
+Bill ID: NAISRA-2026-01
+Title: National Artificial Intelligence Security and Research Advancement Act
+Date: 22 February 2026
+
+PREAMBLE
+
+Recognizing the strategic importance of artificial intelligence to national security, economic resilience, and technological sovereignty;
+Acknowledging the role of advanced research and development in maintaining Norway’s competitiveness and safeguarding critical infrastructure;
+The Storting enacts the following:
+
+SECTION 1 — PURPOSE
+
+1.1 This Act establishes a national framework to:
+    a) Strengthen Norway’s national security posture through secure AI development and deployment.
+    b) Accelerate domestic AI research and development (R&D).
+    c) Protect critical infrastructure and defense-relevant technologies.
+    d) Promote sovereign technological capabilities within Norwegian territory.
+
+SECTION 2 — DEFINITIONS
+
+2.1 “Strategic AI System” means any artificial intelligence system deployed within:
+    a) Defense or military operations.
+    b) Energy, maritime, telecommunications, or financial infrastructure.
+    c) Government decision-support systems impacting national security.
+2.2 “Critical Infrastructure Operator” means any public or private entity designated by the Government as essential to national stability.
+2.3 “National AI Research Institution” means any accredited Norwegian university, research institute, or authorized laboratory conducting AI R&D under this Act.
+
+SECTION 3 — NATIONAL AI SECURITY STANDARDS
+
+3.1 All Strategic AI Systems shall comply with national cybersecurity standards established by the Ministry of Justice and Public Security.
+3.2 Providers of Strategic AI Systems must:
+    a) Maintain secure model training environments within approved jurisdictions.
+    b) Implement access controls and continuous monitoring.
+    c) Conduct adversarial resilience testing prior to deployment.
+3.3 Foreign acquisition of Strategic AI Systems or critical AI assets shall be subject to national security review.
+
+SECTION 4 — NATIONAL AI RESEARCH FUND
+
+4.1 A National AI Research and Innovation Fund is hereby established.
+4.2 The Fund shall allocate grants to:
+    a) Advanced machine learning research.
+    b) Maritime autonomy and oceanic sensing technologies.
+    c) AI-enabled energy optimization systems.
+    d) Secure edge computing and sovereign compute infrastructure.
+4.3 Priority shall be given to collaborative projects between industry, universities, and government agencies.
+
+SECTION 5 — DEFENSE AND DUAL-USE TECHNOLOGY DEVELOPMENT
+
+5.1 The Ministry of Defence shall establish a Strategic AI Acceleration Program focused on:
+    a) Autonomous maritime systems.
+    b) Secure command-and-control decision-support models.
+    c) Cyber defense automation.
+5.2 Dual-use technologies developed under this Act shall be governed by export control regulations to protect national interests.
+
+SECTION 6 — TALENT AND EDUCATION INITIATIVES
+
+6.1 The Government shall expand AI-focused academic programs at Norwegian universities.
+6.2 Scholarships and research fellowships shall be awarded to Norwegian citizens pursuing advanced AI research in security-relevant domains.
+6.3 Public-private partnerships shall support workforce retraining in AI-related sectors.
+
+SECTION 7 — DATA SOVEREIGNTY AND COMPUTE INFRASTRUCTURE
+
+7.1 Sensitive national datasets used in Strategic AI Systems must be stored and processed within Norway or approved allied jurisdictions.
+7.2 The Government shall invest in high-performance computing infrastructure to support domestic AI research.
+7.3 Critical AI models used in national security contexts shall not rely exclusively on foreign-controlled cloud infrastructure without review.
+
+SECTION 8 — OVERSIGHT AND GOVERNANCE
+
+8.1 A National AI Security Council is hereby established to:
+    a) Oversee implementation of this Act.
+    b) Issue annual assessments of AI-related security risks.
+    c) Recommend updates to national AI strategy.
+8.2 The Council shall report annually to the Storting.
+
+SECTION 9 — ENFORCEMENT AND PENALTIES
+
+9.1 Violations involving unauthorized transfer of Strategic AI technologies may result in:
+    a) Administrative fines.
+    b) Revocation of operating licenses.
+    c) Criminal penalties as defined under national security law.
+9.2 Grant recipients found non-compliant with security requirements shall be subject to funding suspension or repayment obligations.
+
+SECTION 10 — EFFECTIVE DATE
+
+10.1 This Act shall enter into force 180 days following adoption by the Storting.
+
+SIGNATURE BLOCK
+
+Adopted by the Storting
+Kingdom of Norway
