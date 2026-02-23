@@ -56,7 +56,8 @@ function AppContent() {
       const formData = new FormData();
       formData.append('file', currentFile, currentFile.name || 'uploaded_bill.txt');
 
-      const response = await fetch('/api/analyze', {
+      const apiUrl = import.meta.env.VITE_API_URL?.replace(/\/$/, '') || '';
+      const response = await fetch(`${apiUrl}/api/analyze`, {
         method: 'POST',
         body: formData,
       });
