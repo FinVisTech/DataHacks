@@ -162,9 +162,9 @@ env/
 *.ipynb_checkpoints
 
 # Models and outputs (generated files)
-models/*.pkl
-outputs/*.csv
-outputs/*.json
+# models/*.pkl
+# outputs/*.csv
+# outputs/*.json
 
 # IDE
 .vscode/
@@ -179,4 +179,4 @@ Thumbs.db
 
 # Data (if you don't want to commit large files)
 data/*.zip
-data/*.csv
+# data/*.csv (commented out so data files sync to Railway)
