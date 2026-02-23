@@ -33,6 +33,10 @@ def startup_event():
     except Exception as e:
         print(f"Error loading models: {e}")
 
+@app.get("/")
+def health_check():
+    return {"status": "ok", "message": "AI Policy API is running"}
+
 @app.post("/api/analyze")
 def analyze_bill(file: UploadFile = File(...)):
     # Add a delay to simulate serious number crunching
